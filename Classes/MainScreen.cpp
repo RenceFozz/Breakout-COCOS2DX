@@ -111,7 +111,7 @@ void MainScreen::initBricks(){
         int y = 50*(i+1);
         for (int j=1;j<=10;j++){
             brick = Sprite::create(brickSprites[i]);
-            brick->setPosition(origin.x + j*39, origin.y + visibleSize.height - y);
+            brick->setPosition(origin.x + j*38, origin.y + visibleSize.height - y);
         
             auto brickBody = PhysicsBody::createBox(brick->getContentSize(), PhysicsMaterial(10,1,0) );
             brickBody->setTag(Category::BRICK);

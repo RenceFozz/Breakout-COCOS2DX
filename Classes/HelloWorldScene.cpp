@@ -4,6 +4,7 @@
 #define LEFT    EventKeyboard::KeyCode::KEY_LEFT_ARROW
 #define RIGHT   EventKeyboard::KeyCode::KEY_RIGHT_ARROW
 #define ENTER   EventKeyboard::KeyCode::KEY_ENTER
+#define ESC     EventKeyboard::KeyCode::KEY_ESCAPE
 
 USING_NS_CC;
 
@@ -49,46 +50,21 @@ void HelloWorld::initTitles(){
     this->addChild(title, 1);
     
     startLabel = Label::createWithTTF("START", "fonts/ARCADECLASSIC.TTF", 32);
-    startLabel->setPosition(Vec2(origin.x + visibleSize.width/3,
+    startLabel->setPosition(Vec2(origin.x + visibleSize.width/2,
                                  origin.y + 40));
     this->addChild(startLabel, 1);
     
-    endLabel = Label::createWithTTF("END", "fonts/ARCADECLASSIC.TTF", 32);
-    endLabel->setPosition(Vec2(origin.x + 2 * visibleSize.width/3,
-                               origin.y + 40));
-    this->addChild(endLabel, 1);
-    
     selectSprite = Sprite::create("Assets/ball_red_t.png");
-    selectSprite->setPosition(Vec2(visibleSize.width/3 + origin.x,
+    selectSprite->setPosition(Vec2(origin.x + visibleSize.width/2,
                                    startLabel->getPositionY()/2 ));
     this->addChild(selectSprite, 0);
 }
 
 void HelloWorld::onKeyPressed(EventKeyboard::KeyCode keyCode, Event* event){
-    switch (keyCode){
-        case LEFT:
-        case RIGHT:
-            if(currOp==1){
-                currOp=2;
-                selectSprite->setPosition(Vec2(2 * visibleSize.width/3 + origin.x,
-                                               startLabel->getPositionY()/2 ));
-            }
-            else{
-                currOp=1;
-                selectSprite->setPosition(Vec2(visibleSize.width/3 + origin.x,
-                                               startLabel->getPositionY()/2 ));
-            }
-            break;
-        case ENTER:
-            if(currOp==1){
-                audio->stopBackgroundMusic();
-                auto scene = MainScreen::createScene();
-                Director::getInstance()->replaceScene(TransitionFade::create(0.5, scene));
-            }
-            else{
-                Director::getInstance()->end();
-                //exit(0);
-            }
-            break;
+    if(keyCode==ENTER){
+        audio->stopBackgroundMusic();
+        Director::getInstance()->replaceScene(TransitionFade::create(0.5, MainScreen::createScene()));
+    } else if (keyCode==ESC) {
+        Director::getInstance()->end();
     }
 }

@@ -23,9 +23,9 @@ private:
     int currOp = 1;
     Size visibleSize;
     Vec2 origin;
+    
     Label* title;
     Label* startLabel;
-    Label* endLabel;
     Sprite* selectSprite;
     CocosDenshion::SimpleAudioEngine* audio = CocosDenshion::SimpleAudioEngine::getInstance();
     
