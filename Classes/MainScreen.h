@@ -35,6 +35,7 @@ private:
     Sprite* ball;
     Sprite* paddle;
     Sprite* border;
+    Sprite* floor;
     Sprite* brick;
     experimental::AudioEngine* music;
     vector<string> tracks;

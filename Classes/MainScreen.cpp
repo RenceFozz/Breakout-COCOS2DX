@@ -11,12 +11,12 @@
 
 USING_NS_CC;
 
-enum Category   {BALL, PADDLE, BRICK, WALL};
+enum Category   {BALL, PADDLE, BRICK, WALL, FLR};
 
 Scene* MainScreen::createScene()
 {
     auto scene = Scene::createWithPhysics();
-    //scene->getPhysicsWorld()->setDebugDrawMask( PhysicsWorld::DEBUGDRAW_ALL );
+    scene->getPhysicsWorld()->setDebugDrawMask( PhysicsWorld::DEBUGDRAW_ALL );
     scene->getPhysicsWorld()->setGravity(Vec2(0,0));
     
     auto layer = MainScreen::create();
@@ -158,16 +158,24 @@ void MainScreen::initBall(){
 
 void MainScreen::initBorder(){
     border = Sprite::create();
+    floor = Sprite::create();
     border->setPosition(Point(origin.x + visibleSize.width / 2, origin.y + visibleSize.height / 2 ));
+    floor->setPosition(Point(origin.x + visibleSize.width / 2, origin.y + 2 ));
     
     auto borderBody = PhysicsBody::createEdgeBox(visibleSize, PhysicsMaterial(1000.0f,1.0f,0.0));
+    auto floorBody = PhysicsBody::createBox(Size(visibleSize.width, 1), PhysicsMaterial(1000.0f,1.0f,0.0));
     border->setPhysicsBody(borderBody);
+    floor->setPhysicsBody(floorBody);
     
     border->getPhysicsBody()->setTag(Category::WALL);
     border->getPhysicsBody()->setContactTestBitmask(true);
     border->getPhysicsBody()->setDynamic(false);
+    floor->getPhysicsBody()->setTag(Category::FLR);
+    floor->getPhysicsBody()->setContactTestBitmask(true);
+    floor->getPhysicsBody()->setDynamic(false);
     
     this->addChild(border);
+    this->addChild(floor);
 }
 
 void MainScreen::initScore(){
@@ -231,6 +239,25 @@ void MainScreen::updateVelocity(){
     }
 }
 
+void MainScreen::playAudio(){
+    if(currTrack==-1){
+        switch(musicCounter % 4){
+            case 0: currTrack = music->play2d(tracks[musicCounter % 4], true, 1.5f); break;
+            case 1: currTrack = music->play2d(tracks[musicCounter % 4], true, 0.5f); break;
+            case 2: currTrack = music->play2d(tracks[musicCounter % 4], true, 0.5f); break;
+            case 3: currTrack = music->play2d(tracks[musicCounter % 4], true, 0.5f); break;
+        }
+    } else {
+        music->resume(currTrack);
+    }
+}
+
+void MainScreen::playIncidental(){
+    music->stopAll();
+    if(hasWon){ music->play2d(incidentals[1]); }
+    else if (!hasWon && brickCount!=0) { music->play2d(incidentals[0]); }
+}
+
 void MainScreen::onKeyPressed(EventKeyboard::KeyCode keyCode, Event* event){
     if (keyCode==KEY_ESC) { Director::getInstance()->end(); }
     if(play){
@@ -253,8 +280,8 @@ void MainScreen::onKeyPressed(EventKeyboard::KeyCode keyCode, Event* event){
                     updateVelocity();
                 }
                 break;
-            case LEFT: paddleX = -500; break;
-            case RIGHT: paddleX = 500; break;
+            case LEFT: paddleX = -650; break;
+            case RIGHT: paddleX = 650; break;
             case KEY_M:
                 if(isPlaying){
                     musicCounter++;
@@ -272,27 +299,8 @@ void MainScreen::onKeyPressed(EventKeyboard::KeyCode keyCode, Event* event){
     if (keyCode==KEY_R){
         music->stopAll();
         Director::getInstance()->replaceScene(
-                TransitionFade::create(0.5, MainScreen::createScene()));
+                                              TransitionFade::create(0.5, MainScreen::createScene()));
     }
-}
-
-void MainScreen::playAudio(){
-    if(currTrack==-1){
-        switch(musicCounter % 4){
-            case 0: currTrack = music->play2d(tracks[musicCounter % 4], true, 0.5f); break;
-            case 1: currTrack = music->play2d(tracks[musicCounter % 4], true, 0.5f); break;
-            case 2: currTrack = music->play2d(tracks[musicCounter % 4], true, 0.5f); break;
-            case 3: currTrack = music->play2d(tracks[musicCounter % 4], true, 0.5f); break;
-        }
-    } else {
-        music->resume(currTrack);
-    }
-}
-
-void MainScreen::playIncidental(){
-    music->stopAll();
-    if(hasWon){ music->play2d(incidentals[1]); }
-    else if (!hasWon && brickCount!=0) { music->play2d(incidentals[0]); }
 }
 
 void MainScreen::onKeyReleased(EventKeyboard::KeyCode keyCode, Event* event){
@@ -310,9 +318,11 @@ bool MainScreen::onContactBegin(PhysicsContact &contact){
     if( (a==Category::BALL && b==Category::WALL) ||
         (b==Category::BALL && a==Category::WALL)){
         music->play2d(effects[1], false, 1.0f);
-        if(ball->getPositionY() < 10){
-            MainScreen::gameOver();
-        }
+    }
+    
+    else if( (a==Category::BALL && b==Category::FLR) ||
+             (b==Category::BALL && a==Category::FLR)){
+        MainScreen::gameOver();
     }
     
     else if( (a==Category::BALL && b==Category::PADDLE) ||
